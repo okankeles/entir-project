@@ -1,11 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Load } from 'src/loads/load.entity'; // Load entity'sini import ediyoruz
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany, // OneToMany'i import ediyoruz
+} from 'typeorm';
 
 export enum UserType {
   SHIPPER = 'SHIPPER', // Yük Sahibi
   CARRIER = 'CARRIER', // Nakliyeci
 }
 
-@Entity('users') // Bu class'ın 'users' tablosunu temsil ettiğini belirtir
+@Entity('users') // Veritabanındaki tablo adı 'users'
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -39,4 +47,9 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
+
+  // One-to-Many İlişkisi: Bir kullanıcı, birçok yük ilanına (loads) sahip olabilir.
+  // (load) => load.shipper ifadesi, Load entity'sindeki 'shipper' alanıyla bu ilişkinin kurulduğunu belirtir.
+  @OneToMany(() => Load, (load) => load.shipper)
+  loads: Load[];
 }

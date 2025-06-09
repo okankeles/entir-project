@@ -2,21 +2,37 @@ import React, { useContext } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
-import { AuthContext } from '../context/AuthContext'; // <-- YENİ IMPORT
+import LoadDetailScreen from '../screens/LoadDetailScreen';
+import { AuthContext } from '../context/AuthContext';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const { userToken } = useContext(AuthContext); // Global state'ten token'ı al
+  const { userToken } = useContext(AuthContext);
 
   return (
     <Stack.Navigator>
       {userToken ? (
-        // Eğer token varsa, sadece Ana Sayfa'yı göster
-        <Stack.Screen name="MainApp" component={HomeScreen} options={{ title: 'ENTIR Ana Sayfa' }} />
+        // Giriş yapılmışsa, bu ekran grubunu göster
+        <>
+          <Stack.Screen 
+            name="Home" 
+            component={HomeScreen} 
+            options={{ title: 'Aktif İlanlar' }} 
+          />
+          <Stack.Screen 
+            name="LoadDetail" 
+            component={LoadDetailScreen} 
+            options={{ title: 'İlan Detayı' }} // Başlığı dinamik de yapabiliriz
+          />
+        </>
       ) : (
-        // Eğer token yoksa, sadece Giriş Ekranı'nı göster
-        <Stack.Screen name="Auth" component={LoginScreen} options={{ headerShown: false }} />
+        // Giriş yapılmamışsa, sadece bu ekranı göster
+        <Stack.Screen 
+          name="Login" 
+          component={LoginScreen} 
+          options={{ headerShown: false }} 
+        />
       )}
     </Stack.Navigator>
   );

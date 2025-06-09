@@ -7,40 +7,44 @@ import {
   FlatList,
   ActivityIndicator,
   SafeAreaView,
-  Alert,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { getAllLoads } from '../services/loadService';
 import LoadCard from '../components/LoadCard';
 
-const HomeScreen = () => {
+// Component artık 'navigation' prop'unu alıyor.
+// Bu prop, React Navigation tarafından otomatik olarak sağlanır.
+const HomeScreen = ({ navigation }) => {
   const { logout } = useContext(AuthContext);
   const [loads, setLoads] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchLoads = async () => {
-      try {
-        setIsLoading(true); // Veri çekmeye başlarken yüklemeyi başlat
-        setError(null); // Eski hataları temizle
-        const data = await getAllLoads();
-        setLoads(data);
-      } catch (err) {
-        setError('İlanlar yüklenirken bir hata oluştu.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Bu fonksiyon, component ilk render edildiğinde çalışır ve
+  // API'den ilanları çeker.
+  const fetchLoads = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getAllLoads();
+      setLoads(data);
+    } catch (err) {
+      setError('İlanlar yüklenirken bir hata oluştu.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchLoads();
-  }, []); // Boş dizi, bu useEffect'in sadece component ilk render edildiğinde çalışmasını sağlar.
+  }, []);
 
   // Herhangi bir ilana tıklandığında çalışacak fonksiyon
   const handleCardPress = (item) => {
-    Alert.alert('İlan Detayı', `Seçilen ilan ID: ${item.id}\nNereden: ${item.origin}`);
-    // Gelecekte bu fonksiyon, kullanıcıyı ilanın detay sayfasına yönlendirecek.
+    // 'LoadDetail' ekranına git ve parametre olarak 'loadId' gönder.
+    // 'loadId' key'i, LoadDetailScreen'de route.params.loadId olarak alınacak.
+    navigation.navigate('LoadDetail', { loadId: item.id });
   };
 
   // FlatList'in her bir satırını nasıl oluşturacağını belirleyen fonksiyon
@@ -48,7 +52,6 @@ const HomeScreen = () => {
     <LoadCard item={item} onPress={() => handleCardPress(item)} />
   );
 
-  // Veri yüklenirken gösterilecek arayüz
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -57,18 +60,15 @@ const HomeScreen = () => {
     );
   }
 
-  // Hata durumunda gösterilecek arayüz
   if (error) {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>{error}</Text>
-        {/* Hata durumunda tekrar deneme butonu eklemek iyi bir pratiktir */}
-        <Button title="Tekrar Dene" onPress={() => useEffect.fetchLoads()} />
+        <Button title="Tekrar Dene" onPress={fetchLoads} />
       </View>
     );
   }
 
-  // Veri başarıyla çekildiğinde gösterilecek ana arayüz
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -80,7 +80,10 @@ const HomeScreen = () => {
         data={loads}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ paddingBottom: 20 }} // Listenin sonuna biraz boşluk ekle
+        contentContainerStyle={{ paddingBottom: 20 }}
+        // Yenilemek için aşağı çekme özelliği (Pull to Refresh)
+        onRefresh={fetchLoads}
+        refreshing={isLoading}
         ListEmptyComponent={
           <View style={styles.center}>
             <Text>Gösterilecek ilan bulunamadı.</Text>

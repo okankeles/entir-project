@@ -1,3 +1,4 @@
+import { Offer } from 'src/offers/offer.entity';
 import { User } from 'src/users/user.entity';
 import {
   Entity,
@@ -6,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 export enum LoadStatus {
@@ -48,4 +50,7 @@ export class Load {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
+
+  @OneToMany(() => Offer, (Offer) => Offer.load)
+  offers: Offer[]; // Bir yükün birden fazla teklifi olabilir
 }

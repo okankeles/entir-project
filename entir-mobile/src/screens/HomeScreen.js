@@ -12,16 +12,12 @@ import { AuthContext } from '../context/AuthContext';
 import { getAllLoads } from '../services/loadService';
 import LoadCard from '../components/LoadCard';
 
-// Component artık 'navigation' prop'unu alıyor.
-// Bu prop, React Navigation tarafından otomatik olarak sağlanır.
 const HomeScreen = ({ navigation }) => {
-  const { logout } = useContext(AuthContext);
+  const { logout, userInfo } = useContext(AuthContext); // userInfo'yu context'ten al
   const [loads, setLoads] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Bu fonksiyon, component ilk render edildiğinde çalışır ve
-  // API'den ilanları çeker.
   const fetchLoads = async () => {
     try {
       setIsLoading(true);
@@ -35,19 +31,21 @@ const HomeScreen = ({ navigation }) => {
       setIsLoading(false);
     }
   };
-
+  
+  // navigation.addListener ile sayfa her odaklandığında veriyi yenile
   useEffect(() => {
-    fetchLoads();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchLoads();
+    });
+    
+    // Component ekrandan kaldırıldığında listener'ı temizle
+    return unsubscribe;
+  }, [navigation]);
 
-  // Herhangi bir ilana tıklandığında çalışacak fonksiyon
   const handleCardPress = (item) => {
-    // 'LoadDetail' ekranına git ve parametre olarak 'loadId' gönder.
-    // 'loadId' key'i, LoadDetailScreen'de route.params.loadId olarak alınacak.
     navigation.navigate('LoadDetail', { loadId: item.id });
   };
 
-  // FlatList'in her bir satırını nasıl oluşturacağını belirleyen fonksiyon
   const renderItem = ({ item }) => (
     <LoadCard item={item} onPress={() => handleCardPress(item)} />
   );
@@ -59,7 +57,7 @@ const HomeScreen = ({ navigation }) => {
       </View>
     );
   }
-
+  
   if (error) {
     return (
       <View style={styles.center}>
@@ -73,7 +71,13 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Aktif İlanlar</Text>
-        <Button title="Çıkış Yap" onPress={logout} color="#FF6347" />
+        {/* Sadece SHIPPER rolündeki kullanıcı bu butonu görür */}
+        {userInfo?.user_type === 'SHIPPER' && (
+          <Button
+            title="İlan Ekle"
+            onPress={() => navigation.navigate('CreateLoad')}
+          />
+        )}
       </View>
 
       <FlatList
@@ -81,7 +85,6 @@ const HomeScreen = ({ navigation }) => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 20 }}
-        // Yenilemek için aşağı çekme özelliği (Pull to Refresh)
         onRefresh={fetchLoads}
         refreshing={isLoading}
         ListEmptyComponent={
@@ -90,6 +93,10 @@ const HomeScreen = ({ navigation }) => {
           </View>
         }
       />
+      
+      <View style={styles.logoutButton}>
+        <Button title="Çıkış Yap" onPress={logout} color="#FF6347" />
+      </View>
     </SafeAreaView>
   );
 };
@@ -122,6 +129,9 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 16,
     marginBottom: 10,
+  },
+  logoutButton: {
+    margin: 15,
   },
 });
 

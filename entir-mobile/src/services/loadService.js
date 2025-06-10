@@ -50,3 +50,18 @@ export const getLoadById = async (id) => {
     throw error;
   }
 };
+
+/**
+ * Belirli bir ID'ye sahip yük ilanını getiren fonksiyon
+ * @param {object} loadData - Yük ID'si
+ */
+export const createLoad = async (loadData) => {
+  try {
+    //  apiClient, token'i otomatik olarak ekleyecek
+    const response = await apiClient.post('/loads', loadData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create load:', error.response?.data || error.message);
+    throw error;
+  } 
+};

@@ -1,11 +1,12 @@
 import { Load } from 'src/loads/load.entity'; // Load entity'sini import ediyoruz
+import { Offer } from 'src/offers/offer.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany, // OneToMany'i import ediyoruz
+  OneToMany,
 } from 'typeorm';
 
 export enum UserType {
@@ -52,4 +53,7 @@ export class User {
   // (load) => load.shipper ifadesi, Load entity'sindeki 'shipper' alanıyla bu ilişkinin kurulduğunu belirtir.
   @OneToMany(() => Load, (load) => load.shipper)
   loads: Load[];
+
+  @OneToMany(() => Offer, (offer) => offer.carrier)
+  offers: Offer[];
 }
